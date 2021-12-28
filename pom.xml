@@ -36,7 +36,7 @@
 				<configuration>
 				<CloudHubDeployment>
 				<username>rpadmanavar09</username>
-				<environment>Sandbox</environment>
+				<environment>sandbox</environment>
 				<workers>1</workers>
 				<workerType>Micro</workerType>
 				<applicationName>forEach-service</applicationName>
