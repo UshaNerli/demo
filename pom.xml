@@ -33,6 +33,17 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
+				<configuration>
+				<CloudHubDeployment>
+				<username>rpadmanavar09</username>
+				<environment>Sandbox</environment>
+				<workers>1</workers>
+				<workerType>Micro</workerType>
+				<applicationName>forEach-service</applicationName>
+				<password>Ravi@123</password>
+				<muleVersion>4.4.0</muleVersion>
+				</CloudHubDeployment>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
