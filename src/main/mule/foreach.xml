@@ -32,7 +32,6 @@ payload]]]></http:body>
 					</on-error-continue>
 				</error-handler>
 			</try>
-			<logger level="INFO" doc:name="Logger" doc:id="25c8926d-17cf-44c8-b7d6-91ca40fc493d" message="#[payload]"/>
 		</foreach>
 		<ee:transform doc:name="Transform Message" doc:id="b7f7e933-1005-41fc-8de8-ad9c6df229d7" >
 			<ee:message >
