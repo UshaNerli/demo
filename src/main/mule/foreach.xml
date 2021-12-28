@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="09d9a933-e078-430c-8965-372093d182d3" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<flow name="foreachFlow" doc:id="bcacd4e3-11d2-4bb9-9b9b-87a2c4dc3916" initialState="started">
+		<http:listener doc:name="Listener" doc:id="0864c5f5-29b5-4c0a-a122-bd39c29af319" config-ref="HTTP_Listener_config" path="/foreach">
+			<http:response >
+				<http:body ><![CDATA[#[output application/json
+---
+payload]]]></http:body>
+			</http:response>
+		</http:listener>
+		<set-variable value='#[[1,2,3,"a",5,6]]' doc:name='[1,2,3,"a",5,6]' doc:id="0a57a540-bc1b-440f-8b23-1e7ed6a744b0" variableName="details"/>
+		<set-variable value="#[[]]" doc:name="successRecordValues" doc:id="02e0a29b-1373-49ed-a2a7-90f60fa32b4c" variableName="successRecordValues"/>
+		<set-variable value="#[[]]" doc:name="failures" doc:id="d0ed5a03-b055-4569-9dd0-8b96fdb4371b" variableName="failures"/>
+		<foreach doc:name="For Each" doc:id="1f55f3e6-9276-4e11-882f-d220c6a6288e" collection="#[vars.details]">
+			<try doc:name="Try" doc:id="b6cf15dd-8936-4b1f-8b61-ee95691f2cda" >
+				<set-payload value="#[payload*10]" doc:name="Set Payload" doc:id="d491eb96-bf3e-4f2b-9d29-4e843411b2c1" />
+				<set-variable value="#[output application/json --- vars.successRecordValues + payload]" doc:name="successRecordValues" doc:id="e64670f4-4317-4f2b-8fe8-470b44cb30b2" variableName="successRecordValues" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="0b18d268-7b77-458b-8838-3daafc588c9a" type="ANY">
+						<logger level="INFO" doc:name="Logger" doc:id="0843e8e7-882e-426f-982d-69abf4282af6" message="Error occured, please continue."/>
+						<set-variable value="#[output application/json --- vars.failures + payload]" doc:name="failures" doc:id="55b2fe9c-57bd-4a5f-a132-692e20f5b242" variableName="failures"/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+			<logger level="INFO" doc:name="Logger" doc:id="25c8926d-17cf-44c8-b7d6-91ca40fc493d" message="#[payload]"/>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="b7f7e933-1005-41fc-8de8-ad9c6df229d7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	actualpayload : payload,
+	successModifiedPayload : vars.successRecordValues,
+	failurerecords : vars.failures
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="foreachFlow1" doc:id="118eba16-e34d-488c-a1ea-86bfa2ad7cbf" >
+		<http:listener doc:name="Listener" doc:id="20909f2c-8104-4557-8386-4705ac777f2a" config-ref="HTTP_Listener_config" path="/foreach1"/>
+		<set-payload value='#[[1,2,3,4,"a",5,6,7,"b"]]' doc:name='[1,2,3,4,"a",5,6,7,"b"]' doc:id="cd2aa874-c0c1-4eb3-aa4f-6b88b1d1c1fb" />
+		<set-variable value="#[[]]" doc:name="successRecordValues" doc:id="98de688f-2531-421d-82ee-56f1ee62d211" variableName="successRecordValues"/>
+		<set-variable value="#[[]]" doc:name="failures" doc:id="d2bbed06-05ac-430b-9621-5aee4cc24906" variableName="failures"/>
+		<foreach doc:name="For Each" doc:id="0e77488a-cc33-46e4-80cf-60ae4fc22433" >
+			<try doc:name="Try" doc:id="3579cc9d-1f08-4aa2-97b2-0f470b0821ce" >
+				<set-payload value="#[payload * 10]" doc:name="Set Payload" doc:id="da8ab6c4-5102-41ec-94a5-b26312365e66" />
+				<set-variable value="#[output application/json --- vars.successRecordValues + payload]" doc:name="successRecordValues" doc:id="93e00663-375e-43af-accb-6fc8ded987e0" variableName="successRecordValues"/>
+				<logger level="INFO" doc:name="Logger" doc:id="36e0493f-3a2c-4672-9432-5e9d28b82bc0" message="#[payload]"/>
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="d391a134-9b31-43ae-a602-204b761e38b9" >
+						<logger level="INFO" doc:name="Logger" doc:id="d342ce62-922e-4877-9518-63fc856f6cca" message='#["Error occurred"]'/>
+						<set-variable value="#[output application/json --- vars.failures + payload]" doc:name="failures" doc:id="5f02f799-5eb5-484f-9d42-196e5127c00c" variableName="failures"/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="39de633c-391c-449f-b84a-6f7b303e96ec" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ 
+	actualpayload:payload,
+	successModifiedPayload : vars.successRecordValues,
+	failurerecords :vars.failures
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="foreachFlow2" doc:id="c045b045-d85d-488e-84cb-153b235a62a5" initialState="started">
+		<http:listener doc:name="Listener" doc:id="cb66d609-4f50-4999-920a-4458962d8f18" config-ref="HTTP_Listener_config" path="/foreach2" />
+		<set-payload value='#[{&#10;	"users":{"name":"Usha",&#10;		id:2&#10;	},&#10;	"users":{"name":"Ajay",&#10;		id:4&#10;	}&#10;}]' doc:name="Set Payload" doc:id="eadd566d-c2bb-4a81-a462-724de7eb5c76" />
+		<foreach doc:name="For Each" doc:id="2c6acc03-ec3d-4836-9271-29d35f4c1c84" collection="#[payload]">
+			<logger level="INFO" doc:name="Logger" doc:id="64c21168-1f31-4fd5-9489-d0e7c6871af5" message="#[output application/json&#10;---&#10;payload]" />
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="6d9c1a1b-2a98-4a85-8cbf-7ab5939e2ce1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="async-processorFlow" doc:id="237786a3-f86d-4f15-b023-83cee32d7355" >
+		<http:listener doc:name="Listener" doc:id="250b9bab-c205-40ad-98f7-ecab01949c73" config-ref="HTTP_Listener_config" path="/async">
+			<http:response >
+				<http:body ><![CDATA[#[output application/json --- payload]]]></http:body>
+			</http:response>
+		</http:listener>
+		<set-payload value="#[1]" doc:name="Set Payload" doc:id="779415b6-2999-4a0e-9ecc-0cb57f50ecee" />
+		<set-variable value='#["Apple"]' doc:name="var1" doc:id="bee8d2a7-f4a9-49c4-ac83-baac3a029eba" variableName="var1"/>
+		<async doc:name="Async" doc:id="9bfec2b0-2e59-46f5-8054-17c0e0c086ac" >
+			<set-payload value="#[payload*100]" doc:name="Set Payload" doc:id="d2ce756a-039b-46ab-a90e-6509be2eb7fc" />
+			<set-variable value='#[vars.var1 ++ "Banana"]' doc:name="var2" doc:id="0f60e5c8-8a56-497a-b6b2-c2b270e180ba" variableName="var2"/>
+			<logger level="INFO" doc:name="vars.var2" doc:id="9c5e9773-6e95-400c-8e08-38ab3ba96950" message="#[vars.var2]"/>
+			<logger level="INFO" doc:name="Logger" doc:id="30f2213e-ac36-4248-afde-59548caf070d" message="#[payload]"/>
+		</async>
+		<logger level="INFO" doc:name="Logger" doc:id="9c7c4f99-bd37-4955-a6df-406e866b9c35" message="#[payload]"/>
+	</flow>
+	<flow name="foreachFlow4" doc:id="dfc9f2b5-6793-4f1c-98a6-9235edf0cc3c">
+		<http:listener doc:name="Listener" doc:id="25511585-9dbf-46c1-9033-c529c19f9297" config-ref="HTTP_Listener_config" path="/foreach4" />
+		<set-variable value='#[[1,2,3,4,"a",5,6,7,"b"]]' doc:name='[1,2,3,4,"a",5,6,7,"b"]' doc:id="f3c291cd-10c8-4059-8bbf-f9c8bd5dfb0f" variableName="details" />
+		<set-variable value="#[[]]" doc:name="successRecordValues" doc:id="85e407d8-e0fd-4041-91e4-beaa9f412c1e" variableName="successRecordValues" />
+		<set-variable value="#[[]]" doc:name="failures" doc:id="dd4c2a95-69cc-4527-b168-2972edadf311" variableName="failures" />
+		<foreach doc:name="For Each" doc:id="760afe4e-db03-4258-80a3-31b21ccccfcd" collection="#[vars.details]">
+			<try doc:name="Try" doc:id="800f4290-c425-4912-bf7b-c496fd041cdc">
+				<set-payload value="#[payload * 10]" doc:name="Set Payload" doc:id="dca469d8-b603-4b5a-b68f-3d24c060e283" />
+				<set-variable value="#[output application/json --- vars.successRecordValues + payload]" doc:name="successRecordValues" doc:id="349c8ff8-a492-47c2-93b0-d9e06a35e29c" variableName="successRecordValues" />
+				<logger level="INFO" doc:name="Logger" doc:id="47b18581-fc24-4419-bb96-d7c695e2d53a" message="#[payload]" />
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="060f821d-ca3b-4915-b95c-b9e62bc02996">
+						<logger level="INFO" doc:name="Logger" doc:id="a2af37a9-158c-4e06-a043-c780b4c14b23" message='#["Error occurred"]' />
+						<set-variable value="#[output application/json --- vars.failures + payload]" doc:name="failures" doc:id="54c1d354-f013-4f75-88a5-17edddb428b1" variableName="failures" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="52b154de-df9a-4f0e-8919-3978fe3005d2">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ 
+	actualpayload:payload,
+	successModifiedPayload : vars.successRecordValues,
+	failurerecords :vars.failures
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="parallel-for-each-Flow" doc:id="b349eba1-00f1-4696-9303-6a70f9156b50" >
+		<http:listener doc:name="Listener" doc:id="f265e5c0-141f-4aa6-9ffd-3a889ca088e7" config-ref="HTTP_Listener_config" path="/parallelforeach">
+			<http:response >
+				<http:body ><![CDATA[#[output application/json --- payload]]]></http:body>
+			</http:response>
+		</http:listener>
+		<set-payload value="#[[1,2,3]]" doc:name="[1,2,3]" doc:id="75180cb0-de46-4e99-9b43-6d067df836e2" />
+		<set-variable value='#["Apple"]' doc:name='var1 ="Apple"' doc:id="254842ca-db49-4707-8acc-b896d843e806" variableName="var1"/>
+		<parallel-foreach doc:name="Parallel For Each" doc:id="730538e5-a264-4c5e-9de2-f5268b10e055">
+			<ee:transform doc:name="Transform Message" doc:id="fdec6cb7-df42-413e-99e5-51a754debfb0" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	paylaod: payload
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="var2" ><![CDATA["Banana"]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<logger level="INFO" doc:name="payload" doc:id="2b7014ac-ebc3-47cf-9fb9-c573c92e1afc" message="#[payload]"/>
+		</parallel-foreach>
+		<ee:transform doc:name="Transform Message" doc:id="4972a6e6-4d7a-4ebc-a36d-7f1d45d442b9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{payload: flatten(payload..payload),
+	Var1: vars.var1,
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="payload" doc:id="d2b40370-718c-4e55-8373-6d45d0d20d74" message="#[payload]"/>
+	</flow>
+	<flow name="parallel-for-each-Flow1" doc:id="7f2b6d35-52c1-48b2-9387-304e82fe20a7" >
+		<http:listener doc:name="Listener" doc:id="7035c344-4245-4482-982c-a69219606feb" config-ref="HTTP_Listener_config" path="/parallelforeach1">
+			<http:response >
+				<http:body ><![CDATA[#[output application/json --- payload]]]></http:body>
+			</http:response>
+		</http:listener>
+		<set-payload value='#[["Ravi",2,3,"Usha",4,5,6]]' doc:name='["Ravi",2,3,"Usha",4,5,6]' doc:id="772bc73b-f14e-446b-bd19-d1b264ca5b24" />
+		<parallel-foreach doc:name="Parallel For Each" doc:id="3e6ee96e-346d-4cbb-b70d-d599519dbb82">
+			<set-payload value="#[payload*10]" doc:name="payload*10" doc:id="3e7b739e-d091-42fc-ac19-38c40ea81b97" />
+			<logger level="INFO" doc:name="Logger" doc:id="35550ad5-87ca-4478-b775-fa3077b7817b" message="#[payload]"/>
+		</parallel-foreach>
+		<ee:transform doc:name="Transform Message" doc:id="9497b4b7-455a-4446-a899-f419f8818d90" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload..payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="payload" doc:id="49d52d64-3f9f-49bb-a8d7-b07a0af907c5" message="#[payload]"/>
+	</flow>
+	<flow name="parallel-for-each-Flow2" doc:id="cedbe015-f104-47f5-9529-2d559a8bf18c" >
+		<http:listener doc:name="Listener" doc:id="dda0630c-91c9-4ef1-9aae-789642ee93e3" config-ref="HTTP_Listener_config" path="/parallelforeach2">
+			<http:response >
+				<http:body ><![CDATA[#[output application/json --- payload]]]></http:body>
+			</http:response>
+		</http:listener>
+		<set-payload value='#[[1,2,"a",3]]' doc:name='[1,2,"a",3]' doc:id="692f99a8-d709-4a66-a7c3-440693430617" />
+		<parallel-foreach doc:name="Parallel For Each" doc:id="9476ae95-99c8-4067-9b5e-c9f627607ffc" maxConcurrency="2">
+			<try doc:name="Try" doc:id="1ba841f1-167f-4045-a077-c0ca7ecdf78c" >
+				<set-payload value="#[payload*10]" doc:name="payload*10" doc:id="a5791cf0-e812-4fa7-b057-65116c6f24eb" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="fa91a58b-e717-4f21-9070-d4b4da89a2da" >
+						<logger level="INFO" doc:name="Logger" doc:id="0440e66e-9caf-4a2d-853a-7200a0413344" message="#[payload]"/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+			<logger level="INFO" doc:name="print paylaod" doc:id="5d570226-5f95-4a95-8c21-ca15b58c4827" message="#[payload]"/>
+		</parallel-foreach>
+		<ee:transform doc:name="flatten(payload..payload)" doc:id="3a0a6b7b-dd7b-4ce0-884e-d1f07e45965c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload..payload)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="payload" doc:id="64271897-df5f-4cc9-bcf9-5cada0e6e96e" message="#[payload]"/>
+	</flow>
+</mule>
