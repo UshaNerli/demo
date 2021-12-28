@@ -34,15 +34,15 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-				<CloudHubDeployment>
+				<cloudHubDeployment>
 				<username>rpadmanavar09</username>
-				<environment>sandbox</environment>
+				<environment>Sandbox</environment>
 				<workers>1</workers>
 				<workerType>Micro</workerType>
 				<applicationName>forEach-service</applicationName>
 				<password>Ravi@123</password>
 				<muleVersion>4.4.0</muleVersion>
-				</CloudHubDeployment>
+				</cloudHubDeployment>
 				</configuration>
 			</plugin>
 		</plugins>
